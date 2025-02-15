@@ -1,13 +1,13 @@
 import {
-  AdvertisementType,
-  PropertyType,
-  CarBrand,
-  ServiceType,
-} from "../../../shared/types/advertesementTypes";
+  ADVERTISEMENT_TYPES,
+  CAR_BRANDS,
+  PROPERTY_TYPES,
+  SERVICE_TYPES,
+} from "../../../shared/constants/advertisementsFieldTypes";
 
 export const DEFAULT_VALUES = {
-  type: AdvertisementType.REAL_ESTATE, // "Недвижимость"
-  propertyType: PropertyType.HOUSE, // "house"
-  brand: CarBrand.TOYOTA, // "Toyota"
-  serviceType: ServiceType.CLEANING, // "Cleaning"
+  type: ADVERTISEMENT_TYPES.realEstate, // "Недвижимость"
+  propertyType: PROPERTY_TYPES.house, // "house"
+  brand: CAR_BRANDS.toyota, // "Toyota"
+  serviceType: SERVICE_TYPES.cleaning, // "Cleaning"
 };

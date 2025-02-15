@@ -10,14 +10,7 @@ const ItemTypes = {
 
 const app = express();
 app.use(bodyParser.json());
-// Разрешить запросы с http://localhost:5173
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"], // Разрешаем несколько источников
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
+app.use(cors());
 // In-memory хранилище для объявлений
 let items = [];
 

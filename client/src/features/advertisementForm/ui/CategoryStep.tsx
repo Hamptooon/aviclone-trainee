@@ -2,37 +2,23 @@ import React from "react";
 import RealEstateStep from "./RealEstateCategoryStep";
 import AutoStep from "./AutoCategoryStep";
 import ServicesStep from "./ServiceCategoryStep";
-import { FormData } from "../model/types";
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { FormData } from "../../../shared/types/types";
 
 interface CategoryStepProps {
-  formData: FormData;
-  register: UseFormRegister<FormData>;
-  errors: FieldErrors<FormData>;
+  formData: Partial<FormData>;
 }
 
-const CategoryStep: React.FC<CategoryStepProps> = ({
-  register,
-  errors,
-  formData,
-}) => {
+const CategoryStep: React.FC<CategoryStepProps> = ({ formData }) => {
   switch (formData.type) {
     case "Недвижимость":
-      return (
-        <RealEstateStep
-          formData={formData}
-          register={register}
-          errors={errors}
-        />
-      );
+      return <RealEstateStep formData={formData} />;
+
     case "Авто":
-      return (
-        <AutoStep formData={formData} register={register} errors={errors} />
-      );
+      return <AutoStep formData={formData} />;
+
     case "Услуги":
-      return (
-        <ServicesStep formData={formData} register={register} errors={errors} />
-      );
+      return <ServicesStep formData={formData} />;
+
     default:
       return null;
   }

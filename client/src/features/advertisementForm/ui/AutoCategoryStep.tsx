@@ -1,39 +1,36 @@
 import React from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
-import { FormData } from "../model/types";
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { AutoData } from "../../../shared/types/types";
+import { useFormContext } from "react-hook-form";
 import { DEFAULT_VALUES } from "../config/config";
-import { CarBrand } from "../../../shared/types/advertesementTypes";
+import { CAR_BRANDS } from "../../../shared/constants/advertisementsFieldTypes";
 interface AutoCategoryStepProps {
-  register: UseFormRegister<FormData>;
-  errors: FieldErrors<FormData>;
-  formData: FormData;
+  formData: Partial<AutoData>;
 }
-const AutoCategoryStep: React.FC<AutoCategoryStepProps> = ({
-  register,
-  errors,
-  formData,
-}) => {
-  // const dispatch = useDispatch();
-  // const handleChange = (key: keyof FormData, value: string | number) => {
-  //   dispatch(updateFormData({ [key]: value }));
-  // };
+const AutoCategoryStep: React.FC<AutoCategoryStepProps> = ({ formData }) => {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<AutoData>();
+  console.log("brand", formData.brand);
   return (
     <Box sx={{ mt: 2 }}>
       <TextField
         fullWidth
         label="Brand"
         {...register("brand")}
-        defaultValue={formData.brand || DEFAULT_VALUES.brand}
+        defaultValue={formData.brand ?? ""}
         error={!!errors.brand}
         helperText={errors.brand?.message}
         required
         select
         sx={{ mb: 2 }}
       >
-        <MenuItem value={CarBrand.HONDA}>Honda</MenuItem>
-        <MenuItem value={CarBrand.TOYOTA}>Toyota</MenuItem>
-        <MenuItem value={CarBrand.MAZDA}>Mazda</MenuItem>
+        {Object.values(CAR_BRANDS).map((brand) => (
+          <MenuItem key={brand} value={brand}>
+            {brand}
+          </MenuItem>
+        ))}
       </TextField>
       <TextField
         fullWidth

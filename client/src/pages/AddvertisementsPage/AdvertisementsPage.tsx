@@ -7,25 +7,28 @@ import {
   Box,
   Typography,
   InputAdornment,
-  LinearProgress,
   Alert,
   AlertTitle,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { AdvertisementList } from "../../widgets/AdvertisementList/ui/AdvertisementList";
-import { advertisementApi } from "../../shared/api/advertisementApi";
+import {
+  advertisementApi,
+  AdvertisementFiltersType,
+} from "../../shared/api/advertisementApi";
 import { useDebounce } from "../../shared/lib/hooks/useDebounce";
 import { AdvertisementFilters } from "../../features/AdvertisementFilters/ui/AdvertisementFilters";
 
 export const AdvertisementPage = () => {
-  const DEBOUNCE_DELAY = 500;
+  const DEBOUNCE_DELAY = 100;
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1");
   const searchQuery = searchParams.get("search") || "";
   const [isDebouncing, setIsDebouncing] = useState(false);
   const [searchValue, setSearchValue] = useState(searchQuery);
-  const [filters, setFilters] = useState<any>({});
+  const [filters, setFilters] = useState<AdvertisementFiltersType>({});
   const debouncedSearch = useDebounce(searchValue, DEBOUNCE_DELAY);
   const debouncedFilters = useDebounce(filters, DEBOUNCE_DELAY);
 
@@ -44,7 +47,7 @@ export const AdvertisementPage = () => {
   useEffect(() => {
     if (searchValue !== debouncedSearch) {
       setIsDebouncing(true);
-      const timer = setTimeout(() => setIsDebouncing(false), 500);
+      const timer = setTimeout(() => setIsDebouncing(false), DEBOUNCE_DELAY);
       return () => clearTimeout(timer);
     }
   }, [searchValue, debouncedSearch]);
@@ -65,11 +68,17 @@ export const AdvertisementPage = () => {
     value: number
   ) => {
     setSearchParams(
-      {
+      new URLSearchParams({
         page: value.toString(),
         ...(debouncedSearch && { search: debouncedSearch }),
-        ...debouncedFilters,
-      },
+        ...Object.entries(debouncedFilters).reduce(
+          (acc, [key, value]) => {
+            if (value) acc[key] = value.toString();
+            return acc;
+          },
+          {} as Record<string, string>
+        ),
+      }),
       { replace: true }
     );
   };
@@ -108,8 +117,6 @@ export const AdvertisementPage = () => {
           Сбросить фильтры
         </Button>
       </Box>
-
-      {showLoader && <LinearProgress sx={{ mb: 2 }} />}
 
       {isError && (
         <Alert
@@ -155,7 +162,11 @@ export const AdvertisementPage = () => {
           !debouncedSearch && Object.keys(debouncedFilters).length === 0
         }
       />
-
+      {showLoader && (
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <CircularProgress sx={{ mb: 2, textAlign: "center" }} />
+        </Box>
+      )}
       <AdvertisementList advertisements={data?.data || []} />
 
       {data?.totalPages > 1 && (

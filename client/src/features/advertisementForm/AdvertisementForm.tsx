@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import {
   Stepper,
   Step,
@@ -12,7 +11,7 @@ import {
   Container,
 } from "@mui/material";
 import { setActiveStep, updateFormData, resetForm } from "./model/formSlice";
-import { FormData } from "./model/types";
+import { FormData } from "../../shared/types/types";
 import { RootState } from "../../app/store/store";
 import BasicStep from "./ui/BasicStep";
 import CategoryStep from "./ui/CategoryStep";
@@ -21,64 +20,58 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { validationSchemas } from "./model/validationSchema";
 import * as yup from "yup";
-import { FormProvider } from "react-hook-form";
-import { AdvertisementType } from "../../shared/types/advertesementTypes";
+import { FormProvider, useWatch } from "react-hook-form";
+import { DEFAULT_VALUES } from "./config/config";
+import { api } from "../../shared/api/api";
+import { advertisementApi } from "../../shared/api/advertisementApi";
 const AdvertisementForm: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const location = useLocation();
+  const id = location.state?.id;
   const { activeStep, formData } = useSelector((state: RootState) => {
     return state.form;
   });
-
-  const schema =
-    validationSchemas[activeStep === 0 ? "main" : formData.type] ||
-    yup.object();
-
+  const getValidationSchema = () => {
+    if (activeStep === 0) {
+      return validationSchemas["main"];
+    } else if (formData.type) {
+      return validationSchemas[formData.type];
+    }
+    return yup.object();
+  };
   const methods = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(getValidationSchema()),
     mode: "onChange",
+    defaultValues: {
+      propertyType: DEFAULT_VALUES.propertyType,
+      brand: DEFAULT_VALUES.brand,
+      serviceType: DEFAULT_VALUES.serviceType,
+    },
   });
 
-  useEffect(() => {
-    if (!id) {
-      dispatch(resetForm());
-      methods.reset({
-        type: AdvertisementType.REAL_ESTATE,
-      });
-    }
-  }, [dispatch, id, methods]);
+  const { handleSubmit, reset: resetFormHook, getValues } = methods;
 
-  const {
-    register,
-    handleSubmit,
-    reset: resetFormHook,
-    formState: { errors },
-  } = methods;
-  // Загрузка существующего объявления
+  const formValues = useWatch({
+    control: methods.control,
+  });
   const { data: existingAd, isSuccess } = useQuery({
     queryKey: ["ad", id],
-    queryFn: () =>
-      axios
-        .get<FormData>(`http://localhost:3000/items/${id}`)
-        .then((res) => res.data),
-    enabled: !!id,
+    queryFn: () => advertisementApi.getAdvertisementById(id),
+    enabled: typeof id !== "undefined",
   });
 
   useEffect(() => {
     if (isSuccess && existingAd) {
+      console.log("resetHook, dispatch exisingAd");
       resetFormHook(existingAd);
       dispatch(updateFormData(existingAd));
     }
   }, [isSuccess, existingAd, dispatch, resetFormHook]);
-  // useEffect(() => {
-  //   return () => {
-  //     dispatch(resetForm());
-  //   };
-  // }, [dispatch]);
+
   const createMutation = useMutation({
     mutationFn: (data: Partial<FormData>) =>
-      axios.post("http://localhost:3000/items", data),
+      advertisementApi.createAdvertisement(data),
     onSuccess: () => {
       navigate("/list");
       dispatch(resetForm());
@@ -87,35 +80,57 @@ const AdvertisementForm: React.FC = () => {
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<FormData>) =>
-      axios.put(`http://localhost:3000/items/${id}`, data),
+      advertisementApi.updateAdvertisement(id, data),
     onSuccess: () => {
       navigate("/list");
       dispatch(resetForm());
     },
   });
 
-  // useEffect(() => {
-  //   if (existingAd) {
-  //     dispatch(updateFormData(existingAd));
-  //   }
-  // }, [existingAd, dispatch]);
+  const DRAFT_KEY = "adFormDraft";
 
-  // useEffect(() => {
-  //   localStorage.setItem("adFormDraft", JSON.stringify(formData));
-  // }, [formData]);
+  const saveDraft = (formData: Partial<FormData>) => {
+    localStorage.removeItem(DRAFT_KEY);
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+  };
 
-  // useEffect(() => {
-  //   const draft = localStorage.getItem("adFormDraft");
-  //   if (draft && !id) {
-  //     dispatch(updateFormData(JSON.parse(draft)));
-  //   }
-  // }, []);
+  const loadDraft = (): Partial<FormData> | null => {
+    const draft = localStorage.getItem(DRAFT_KEY);
+    return draft ? JSON.parse(draft) : null;
+  };
 
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+  };
+  useEffect(() => {
+    dispatch(setActiveStep(0));
+    if (!isSuccess && !existingAd) {
+      const draft = loadDraft();
+      if (draft) {
+        resetFormHook(draft);
+        dispatch(updateFormData(draft));
+      }
+    }
+  }, [existingAd, isSuccess, resetFormHook, dispatch]);
+
+  useEffect(() => {
+    if (!isSuccess && !existingAd) {
+      saveDraft(formData);
+    }
+  }, [formData, isSuccess, existingAd]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetForm());
+    };
+  }, [id, existingAd]);
+  useEffect(() => {
+    dispatch(updateFormData(getValues()));
+  }, [formValues, dispatch]);
   const steps: string[] = ["Описание обьявления", "Детали"];
 
-  const handleNext = (values: Partial<FormData>) => {
+  const handleNext = () => {
     dispatch(setActiveStep(activeStep + 1));
-    dispatch(updateFormData(values));
   };
 
   const handleBack = (): void => {
@@ -123,14 +138,18 @@ const AdvertisementForm: React.FC = () => {
   };
 
   const handleSubmitForm = (values: Partial<FormData>): void => {
-    dispatch(updateFormData(values));
-    console.log("values", values);
-    console.log("AFTER SUBMIT");
-    console.log(formData);
-    if (id) {
+    console.log("ID", id);
+    if (existingAd) {
       updateMutation.mutate(values);
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate(values, {
+        onSuccess: () => {
+          dispatch(resetForm());
+          resetFormHook({});
+          clearDraft();
+          navigate("/list");
+        },
+      });
     }
   };
   return (
@@ -138,7 +157,7 @@ const AdvertisementForm: React.FC = () => {
       <Container maxWidth="md">
         <Paper sx={{ p: 4, mt: 4 }}>
           <Typography variant="h4" gutterBottom>
-            {id ? "Редактирование обьявления" : "Создание обьявления"}
+            {existingAd ? "Редактирование обьявления" : "Создание обьявления"}
           </Typography>
 
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -150,14 +169,9 @@ const AdvertisementForm: React.FC = () => {
           </Stepper>
 
           {activeStep === 0 ? (
-            // <BasicStep formData={formData} register={register} errors={errors} />
             <BasicStep />
           ) : (
-            <CategoryStep
-              formData={formData}
-              register={register}
-              errors={errors}
-            />
+            <CategoryStep formData={formData} />
           )}
 
           <NavigationFormButtons
@@ -176,155 +190,3 @@ const AdvertisementForm: React.FC = () => {
 };
 
 export default AdvertisementForm;
-
-// import React, { useEffect } from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { useNavigate, useParams } from "react-router-dom";
-// import { useQuery, useMutation } from "@tanstack/react-query";
-// import axios from "axios";
-// import {
-//   Stepper,
-//   Step,
-//   StepLabel,
-//   Typography,
-//   Paper,
-//   Container,
-// } from "@mui/material";
-// import { setActiveStep, updateFormData, resetForm } from "./model/formSlice";
-// import { FormData } from "./model/types";
-// import { RootState } from "../../app/store/store";
-// import BasicStep from "./ui/BasicStep";
-// import CategoryStep from "./ui/CategoryStep";
-// import NavigationFormButtons from "./ui/NavigationFormButtons";
-// import { useForm } from "react-hook-form";
-// import { yupResolver } from "@hookform/resolvers/yup";
-// import { validationSchemas } from "./model/validationSchema";
-// import * as yup from "yup";
-// const AdvertisementForm: React.FC = () => {
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
-//   const { id } = useParams();
-//   const { activeStep, formData } = useSelector((state: RootState) => {
-//     return state.form;
-//   });
-
-//   const schema =
-//     validationSchemas[activeStep === 0 ? "main" : formData.type] ||
-//     yup.object();
-
-//   const {
-//     register,
-//     handleSubmit,
-//     formState: { errors },
-//     reset,
-//   } = useForm({
-//     resolver: yupResolver(schema),
-//     mode: "onChange",
-//   });
-//   console.log("muuuu", formData);
-//   const { data: existingAd } = useQuery({
-//     queryKey: ["ad", id],
-//     queryFn: () =>
-//       axios
-//         .get<FormData>(`http://localhost:3000/items/${id}`)
-//         .then((res) => res.data),
-//     enabled: !!id,
-//   });
-
-//   const createMutation = useMutation({
-//     mutationFn: (data: Partial<FormData>) =>
-//       axios.post("http://localhost:3000/items", data),
-//     onSuccess: () => {
-//       navigate("/list");
-//       dispatch(resetForm());
-//     },
-//   });
-
-//   const updateMutation = useMutation({
-//     mutationFn: (data: Partial<FormData>) =>
-//       axios.put(`http://localhost:3000/items/${id}`, data),
-//     onSuccess: () => {
-//       navigate("/list");
-//       dispatch(resetForm());
-//     },
-//   });
-
-//   useEffect(() => {
-//     if (existingAd) {
-//       dispatch(updateFormData(existingAd));
-//     }
-//   }, [existingAd, dispatch]);
-
-//   useEffect(() => {
-//     localStorage.setItem("adFormDraft", JSON.stringify(formData));
-//   }, [formData]);
-
-//   useEffect(() => {
-//     const draft = localStorage.getItem("adFormDraft");
-//     if (draft && !id) {
-//       dispatch(updateFormData(JSON.parse(draft)));
-//     }
-//   }, []);
-
-//   const steps: string[] = ["Описание обьявления", "Детали"];
-
-//   const handleNext = (values: Partial<FormData>) => {
-//     dispatch(setActiveStep(activeStep + 1));
-//     dispatch(updateFormData(values));
-//   };
-
-//   const handleBack = (): void => {
-//     dispatch(setActiveStep(activeStep - 1));
-//   };
-
-//   const handleSubmitForm = (values: Partial<FormData>): void => {
-//     dispatch(updateFormData(values));
-//     console.log("values", values);
-//     console.log("AFTER SUBMIT");
-//     console.log(formData);
-//     if (id) {
-//       updateMutation.mutate(values);
-//     } else {
-//       createMutation.mutate(values);
-//     }
-//   };
-//   return (
-//     <Container maxWidth="md">
-//       <Paper sx={{ p: 4, mt: 4 }}>
-//         <Typography variant="h4" gutterBottom>
-//           {id ? "Редактирование обьявления" : "Создание обьявления"}
-//         </Typography>
-
-//         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-//           {steps.map((label) => (
-//             <Step key={label}>
-//               <StepLabel>{label}</StepLabel>
-//             </Step>
-//           ))}
-//         </Stepper>
-
-//         {activeStep === 0 ? (
-//           <BasicStep formData={formData} register={register} errors={errors} />
-//         ) : (
-//           <CategoryStep
-//             formData={formData}
-//             register={register}
-//             errors={errors}
-//           />
-//         )}
-
-//         <NavigationFormButtons
-//           activeStep={activeStep}
-//           totalSteps={steps.length}
-//           onBack={handleBack}
-//           onNext={handleNext}
-//           onSubmitStep={handleSubmit}
-//           onSubmit={handleSubmitForm}
-//           isNextDisabled={false}
-//         />
-//       </Paper>
-//     </Container>
-//   );
-// };
-
-// export default AdvertisementForm;

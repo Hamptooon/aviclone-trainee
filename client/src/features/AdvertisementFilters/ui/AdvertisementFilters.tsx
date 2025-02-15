@@ -8,16 +8,22 @@ import {
   TextField,
   Grid,
 } from "@mui/material";
-import {
-  AdvertisementType,
-  PropertyType,
-  CarBrand,
-  ServiceType,
-} from "../../../shared/types/advertesementTypes";
+// import {
+//   AdvertisementType,
+//   PropertyType,
+//   CarBrand,
+//   ServiceType,
+// } from "../../../shared/types/advertesementTypes";
 import { useDebounce } from "../../../shared/lib/hooks/useDebounce";
 import { AdvertisementFiltersType } from "../../../shared/api/advertisementApi";
+import {
+  ADVERTISEMENT_TYPES,
+  CAR_BRANDS,
+  PROPERTY_TYPES,
+  SERVICE_TYPES,
+} from "../../../shared/constants/advertisementsFieldTypes";
 interface AdvertisementFiltersProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: AdvertisementFiltersType) => void;
   resetTrigger: boolean; // Добавляем пропс для сброса
 }
 
@@ -25,8 +31,8 @@ export const AdvertisementFilters = ({
   onFilterChange,
   resetTrigger,
 }: AdvertisementFiltersProps) => {
-  const debounceDelay = 500;
-  const [type, setType] = useState<AdvertisementType | "">("");
+  const debounceDelay = 100;
+  const [type, setType] = useState<string>("");
   const [filters, setFilters] = useState<AdvertisementFiltersType>({});
   const debouncedFilters = useDebounce(filters, debounceDelay);
   useEffect(() => {
@@ -38,14 +44,14 @@ export const AdvertisementFilters = ({
     onFilterChange({ type: type || undefined, ...debouncedFilters });
   }, [type, debouncedFilters]);
 
-  const handleTypeChange = (newType: AdvertisementType | "") => {
+  const handleTypeChange = (newType: string) => {
     setType(newType);
     setFilters({}); // Сбрасываем дополнительные фильтры при смене типа
   };
 
   const renderAdditionalFilters = () => {
     switch (type) {
-      case AdvertisementType.REAL_ESTATE:
+      case ADVERTISEMENT_TYPES.realEstate:
         return (
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
@@ -57,7 +63,7 @@ export const AdvertisementFilters = ({
                     setFilters({ ...filters, propertyType: e.target.value })
                   }
                 >
-                  {Object.values(PropertyType).map((type) => (
+                  {Object.values(PROPERTY_TYPES).map((type) => (
                     <MenuItem key={type} value={type}>
                       {type}
                     </MenuItem>
@@ -72,7 +78,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.minArea || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, minArea: e.target.value })
+                  setFilters({ ...filters, minArea: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -83,7 +89,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.maxArea || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, maxArea: e.target.value })
+                  setFilters({ ...filters, maxArea: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -94,7 +100,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.minPrice || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, minPrice: e.target.value })
+                  setFilters({ ...filters, minPrice: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -105,7 +111,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.maxPrice || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, maxPrice: e.target.value })
+                  setFilters({ ...filters, maxPrice: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -116,7 +122,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.minRooms || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, minRooms: e.target.value })
+                  setFilters({ ...filters, minRooms: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -127,14 +133,14 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.maxRooms || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, maxRooms: e.target.value })
+                  setFilters({ ...filters, maxRooms: Number(e.target.value) })
                 }
               />
             </Grid>
           </Grid>
         );
 
-      case AdvertisementType.AUTO:
+      case ADVERTISEMENT_TYPES.auto:
         return (
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
@@ -146,7 +152,7 @@ export const AdvertisementFilters = ({
                     setFilters({ ...filters, brand: e.target.value })
                   }
                 >
-                  {Object.values(CarBrand).map((brand) => (
+                  {Object.values(CAR_BRANDS).map((brand) => (
                     <MenuItem key={brand} value={brand}>
                       {brand}
                     </MenuItem>
@@ -161,7 +167,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.minYear || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, minYear: e.target.value })
+                  setFilters({ ...filters, minYear: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -172,7 +178,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.maxYear || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, maxYear: e.target.value })
+                  setFilters({ ...filters, maxYear: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -189,7 +195,7 @@ export const AdvertisementFilters = ({
           </Grid>
         );
 
-      case AdvertisementType.SERVICES:
+      case ADVERTISEMENT_TYPES.services:
         return (
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
@@ -201,7 +207,7 @@ export const AdvertisementFilters = ({
                     setFilters({ ...filters, serviceType: e.target.value })
                   }
                 >
-                  {Object.values(ServiceType).map((service) => (
+                  {Object.values(SERVICE_TYPES).map((service) => (
                     <MenuItem key={service} value={service}>
                       {service}
                     </MenuItem>
@@ -216,7 +222,10 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.minExperience || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, minExperience: e.target.value })
+                  setFilters({
+                    ...filters,
+                    minExperience: Number(e.target.value),
+                  })
                 }
               />
             </Grid>
@@ -227,7 +236,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.minCost || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, minCost: e.target.value })
+                  setFilters({ ...filters, minCost: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -238,7 +247,7 @@ export const AdvertisementFilters = ({
                 type="number"
                 value={filters.maxCost || ""}
                 onChange={(e) =>
-                  setFilters({ ...filters, maxCost: e.target.value })
+                  setFilters({ ...filters, maxCost: Number(e.target.value) })
                 }
               />
             </Grid>
@@ -254,14 +263,9 @@ export const AdvertisementFilters = ({
     <Box sx={{ mb: 3 }}>
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel>Категория</InputLabel>
-        <Select
-          value={type}
-          onChange={(e) =>
-            handleTypeChange(e.target.value as AdvertisementType | "")
-          }
-        >
+        <Select value={type} onChange={(e) => handleTypeChange(e.target.value)}>
           <MenuItem value="">Все категории</MenuItem>
-          {Object.values(AdvertisementType).map((type) => (
+          {Object.values(ADVERTISEMENT_TYPES).map((type) => (
             <MenuItem key={type} value={type}>
               {type}
             </MenuItem>

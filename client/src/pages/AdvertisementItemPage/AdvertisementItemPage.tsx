@@ -16,8 +16,8 @@ import {
   Divider,
   useTheme,
 } from "@mui/material";
-import { advertisementApi } from "../../../shared/api/advertisementApi";
-import { Advertisement } from "../../../shared/types/advertesementTypes";
+import { advertisementApi } from "../../shared/api/advertisementApi";
+import { Advertisement } from "../../shared/types/advertesementTypes";
 import {
   LocationOn,
   Home,
@@ -65,7 +65,13 @@ export const AdvertisementItemPage = () => {
     queryFn: () => advertisementApi.getAdvertisementById(Number(id)),
   });
 
-  const handleEdit = () => navigate(`/form/${id}`);
+  const handleEdit = () => {
+    if (advertisement) {
+      navigate("/form", {
+        state: { id: advertisement.id }, // Передаем ID через состояние
+      });
+    }
+  };
 
   if (isLoading) return <CircularProgress sx={{ mt: 3 }} />;
   if (isError)
@@ -180,7 +186,7 @@ export const AdvertisementItemPage = () => {
                   <DetailItem
                     icon={<MeetingRoom fontSize="small" />}
                     label="Комнат"
-                    value={advertisement?.rooms}
+                    value={advertisement?.rooms || "Не указано"}
                   />
                   <DetailItem
                     icon={<SquareFoot fontSize="small" />}
@@ -190,7 +196,7 @@ export const AdvertisementItemPage = () => {
                   <DetailItem
                     icon={<Home fontSize="small" />}
                     label="Тип недвижимости"
-                    value={advertisement?.propertyType}
+                    value={advertisement?.propertyType || "Не указано"}
                   />
                 </>
               )}
@@ -200,7 +206,7 @@ export const AdvertisementItemPage = () => {
                   <DetailItem
                     icon={<DirectionsCar fontSize="small" />}
                     label="Марка"
-                    value={advertisement?.brand}
+                    value={advertisement?.brand || "Не указано"}
                   />
                   <DetailItem
                     icon={<Speed fontSize="small" />}
@@ -210,7 +216,7 @@ export const AdvertisementItemPage = () => {
                   <DetailItem
                     icon={<CalendarToday fontSize="small" />}
                     label="Год выпуска"
-                    value={advertisement?.year}
+                    value={advertisement?.year || "Не указано"}
                   />
                 </>
               )}
@@ -220,7 +226,7 @@ export const AdvertisementItemPage = () => {
                   <DetailItem
                     icon={<Build fontSize="small" />}
                     label="Тип услуги"
-                    value={advertisement?.serviceType}
+                    value={advertisement?.serviceType || "Не указано"}
                   />
                   <DetailItem
                     icon={<CalendarToday fontSize="small" />}

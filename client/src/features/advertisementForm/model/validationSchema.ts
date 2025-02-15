@@ -1,72 +1,7 @@
-// export const basicStepSchema = yup.object().shape({
-//   name: yup.string().required("Name is required").min(3, "Too short"),
-//   description: yup.string().required("Description is required").min(10),
-//   location: yup.string().required("Location is required"),
-//   type: yup.string().required("Category is required"),
-//   photo: yup
-//     .string()
-//     .url("Invalid URL format")
-//     .test(
-//       "is-image-url",
-//       "URL must point to an image file",
-//       (value) =>
-//         !value || // Allow empty
-//         /\.(jpeg|jpg|gif|png|webp)$/.test(value?.toLowerCase() || "")
-//     )
-//     .notRequired(),
-// });
-
-// export const realEstateSchema = yup.object().shape({
-//   propertyType: yup.string().required("Property type is required"),
-//   area: yup
-//     .number()
-//     .typeError("Area must be a number")
-//     .positive("Area must be positive")
-//     .required("Area is required"),
-//   rooms: yup
-//     .number()
-//     .typeError("Rooms must be a number")
-//     .min(1, "At least 1 room")
-//     .required("Rooms are required"),
-//   price: yup
-//     .number()
-//     .typeError("Price must be a number")
-//     .positive("Price must be positive")
-//     .required("Price is required"),
-// });
-
-// export const carSchema = yup.object().shape({
-//   brand: yup.string().required("Brand is required"),
-//   model: yup.string().required("Model is required"),
-//   year: yup
-//     .number()
-//     .typeError("Year must be a number")
-//     .min(1900, "Year must be valid")
-//     .max(new Date().getFullYear(), "Year can't be in the future")
-//     .required("Year is required"),
-// });
-
-// export const serviceSchema = yup.object().shape({
-//   serviceType: yup.string().required("Service type is required"),
-//   experience: yup
-//     .number()
-//     .typeError("Experience must be a number")
-//     .min(0, "Experience can't be negative")
-//     .required("Experience is required"),
-//   cost: yup
-//     .number()
-//     .typeError("Cost must be a number")
-//     .positive("Cost must be positive")
-//     .required("Cost is required"),
-// });
-
+import { ADVERTISEMENT_TYPES } from "./../../../shared/constants/advertisementsFieldTypes";
 import * as yup from "yup";
-import { AdvertisementType } from "../../../shared/types/advertesementTypes";
 
-export const validationSchemas: Record<
-  AdvertisementType | "main",
-  yup.AnyObjectSchema
-> = {
+export const validationSchemas: Record<string, yup.AnyObjectSchema> = {
   main: yup.object().shape({
     name: yup
       .string()
@@ -91,11 +26,11 @@ export const validationSchemas: Record<
       .notRequired(),
     type: yup
       .string()
-      .oneOf(Object.values(AdvertisementType), "Выберите категорию")
+      .oneOf(Object.values(ADVERTISEMENT_TYPES), "Выберите категорию")
       .required(),
   }),
 
-  [AdvertisementType.REAL_ESTATE]: yup.object().shape({
+  [ADVERTISEMENT_TYPES.realEstate]: yup.object().shape({
     propertyType: yup.string().required("Выберите тип недвижимости"),
     area: yup
       .number()
@@ -117,7 +52,7 @@ export const validationSchemas: Record<
       .max(100000000, "Максимальная цена — 100 000 000"),
   }),
 
-  [AdvertisementType.AUTO]: yup.object().shape({
+  [ADVERTISEMENT_TYPES.auto]: yup.object().shape({
     brand: yup
       .string()
       .trim()
@@ -145,7 +80,7 @@ export const validationSchemas: Record<
       .optional(),
   }),
 
-  [AdvertisementType.SERVICES]: yup.object().shape({
+  [ADVERTISEMENT_TYPES.services]: yup.object().shape({
     serviceType: yup
       .string()
       .trim()

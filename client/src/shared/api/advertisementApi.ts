@@ -1,20 +1,25 @@
-import {
-  AdvertisementType,
-  PropertyType,
-  CarBrand,
-  ServiceType,
-  Advertisement,
-} from "../types/advertesementTypes";
+import { FormData } from "../types/types";
 import { api } from "./api";
 export type AdvertisementFiltersType = {
-  type?: AdvertisementType;
-  propertyType?: PropertyType;
+  type?: string;
+  //real_state
+  propertyType?: string;
   minArea?: number;
   maxArea?: number;
-  brand?: CarBrand;
+  minPrice?: number;
+  maxPrice?: number;
+  minRooms?: number;
+  maxRooms?: number;
+  //auto
+  brand?: string;
   minYear?: number;
-  serviceType?: ServiceType;
+  maxYear?: number;
+  model?: string;
+  //services
+  serviceType?: string;
   minExperience?: number;
+  minCost?: number;
+  maxCost?: number;
 };
 
 export const advertisementApi = {
@@ -33,8 +38,12 @@ export const advertisementApi = {
     return response.data;
   },
 
-  updateAdvertisement: async (id: number, data: Advertisement) => {
+  updateAdvertisement: async (id: number, data: Partial<FormData>) => {
     const response = await api.put(`/items/${id}`, data);
+    return response.data;
+  },
+  createAdvertisement: async (data: Partial<FormData>) => {
+    const response = await api.post("/items", data);
     return response.data;
   },
 };

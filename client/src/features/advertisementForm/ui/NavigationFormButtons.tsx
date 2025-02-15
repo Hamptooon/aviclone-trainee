@@ -1,14 +1,14 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
 import { UseFormHandleSubmit } from "react-hook-form";
-
+import { FormData } from "../../../shared/types/types";
 interface FormNavigationProps {
   activeStep: number;
   totalSteps: number;
   onBack: () => void;
-  onNext: (values: any) => void;
-  onSubmit: (values: any) => void;
-  onSubmitStep: UseFormHandleSubmit<any, undefined>;
+  onNext: () => void;
+  onSubmit: (values: Partial<FormData>) => void;
+  onSubmitStep: UseFormHandleSubmit<Partial<FormData>, undefined>;
   isNextDisabled: boolean;
 }
 
