@@ -253,8 +253,6 @@ export const AdvertisementItemPage = () => {
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {advertisement?.type === "Недвижимость" &&
                       `${advertisement?.price} ₽`}
-                    {advertisement?.type === "Авто" &&
-                      `${advertisement?.price} ₽`}
                     {advertisement?.type === "Услуги" &&
                       `${advertisement?.cost} ₽`}
                   </Typography>

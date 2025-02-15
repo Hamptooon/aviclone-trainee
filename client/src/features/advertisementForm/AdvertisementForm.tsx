@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Stepper,
   Step,
@@ -22,8 +21,12 @@ import { validationSchemas } from "./model/validationSchema";
 import * as yup from "yup";
 import { FormProvider, useWatch } from "react-hook-form";
 import { DEFAULT_VALUES } from "./config/config";
-import { api } from "../../shared/api/api";
-import { advertisementApi } from "../../shared/api/advertisementApi";
+import {
+  useAdvertisementById,
+  useCreateAdvertisement,
+  useUpdateAdvertisement,
+} from "../../shared/hooks/useAdvertisement";
+import { useDraft } from "./hooks/useDraft";
 const AdvertisementForm: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -55,12 +58,11 @@ const AdvertisementForm: React.FC = () => {
   const formValues = useWatch({
     control: methods.control,
   });
-  const { data: existingAd, isSuccess } = useQuery({
-    queryKey: ["ad", id],
-    queryFn: () => advertisementApi.getAdvertisementById(id),
-    enabled: typeof id !== "undefined",
-  });
 
+  const { data: existingAd, isSuccess } = useAdvertisementById(id);
+
+  const createMutation = useCreateAdvertisement();
+  const updateMutation = useUpdateAdvertisement(id);
   useEffect(() => {
     if (isSuccess && existingAd) {
       console.log("resetHook, dispatch exisingAd");
@@ -69,39 +71,7 @@ const AdvertisementForm: React.FC = () => {
     }
   }, [isSuccess, existingAd, dispatch, resetFormHook]);
 
-  const createMutation = useMutation({
-    mutationFn: (data: Partial<FormData>) =>
-      advertisementApi.createAdvertisement(data),
-    onSuccess: () => {
-      navigate("/list");
-      dispatch(resetForm());
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (data: Partial<FormData>) =>
-      advertisementApi.updateAdvertisement(id, data),
-    onSuccess: () => {
-      navigate("/list");
-      dispatch(resetForm());
-    },
-  });
-
-  const DRAFT_KEY = "adFormDraft";
-
-  const saveDraft = (formData: Partial<FormData>) => {
-    localStorage.removeItem(DRAFT_KEY);
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-  };
-
-  const loadDraft = (): Partial<FormData> | null => {
-    const draft = localStorage.getItem(DRAFT_KEY);
-    return draft ? JSON.parse(draft) : null;
-  };
-
-  const clearDraft = () => {
-    localStorage.removeItem(DRAFT_KEY);
-  };
+  const { saveDraft, loadDraft, clearDraft } = useDraft();
   useEffect(() => {
     dispatch(setActiveStep(0));
     if (!isSuccess && !existingAd) {
@@ -140,7 +110,12 @@ const AdvertisementForm: React.FC = () => {
   const handleSubmitForm = (values: Partial<FormData>): void => {
     console.log("ID", id);
     if (existingAd) {
-      updateMutation.mutate(values);
+      updateMutation.mutate(values, {
+        onSuccess: () => {
+          navigate("/list");
+          dispatch(resetForm());
+        },
+      });
     } else {
       createMutation.mutate(values, {
         onSuccess: () => {

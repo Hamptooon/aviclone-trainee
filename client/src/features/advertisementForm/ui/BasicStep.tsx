@@ -5,7 +5,7 @@ import { FormData } from "../../../shared/types/types";
 import { useFormContext } from "react-hook-form";
 import { ADVERTISEMENT_TYPES } from "../../../shared/constants/advertisementsFieldTypes";
 
-const BasicStep = () => {
+const BasicStep: React.FC = () => {
   const {
     register,
     formState: { errors },

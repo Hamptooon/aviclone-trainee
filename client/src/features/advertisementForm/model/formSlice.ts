@@ -45,9 +45,9 @@ const formSlice = createSlice({
           updatedData = {
             ...updatedData,
             propertyType: (action.payload as RealEstateData).propertyType ?? "",
-            area: (action.payload as RealEstateData).area ?? 0,
-            rooms: (action.payload as RealEstateData).rooms ?? 0,
-            price: (action.payload as RealEstateData).price ?? 0,
+            area: (action.payload as RealEstateData).area ?? "",
+            rooms: (action.payload as RealEstateData).rooms ?? "",
+            price: (action.payload as RealEstateData).price ?? "",
           };
           break;
 
@@ -65,8 +65,8 @@ const formSlice = createSlice({
           updatedData = {
             ...updatedData,
             serviceType: (action.payload as ServicesData).serviceType ?? "",
-            experience: (action.payload as ServicesData).experience ?? 0,
-            cost: (action.payload as ServicesData).cost ?? 0,
+            experience: (action.payload as ServicesData).experience ?? "",
+            cost: (action.payload as ServicesData).cost ?? "",
             schedule: (action.payload as ServicesData).schedule ?? "",
           };
           break;

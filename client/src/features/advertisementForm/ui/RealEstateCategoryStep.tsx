@@ -2,7 +2,6 @@ import React from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
 import { RealEstateData } from "../../../shared/types/types";
 import { useFormContext } from "react-hook-form";
-import { DEFAULT_VALUES } from "../config/config";
 import { PROPERTY_TYPES } from "../../../shared/constants/advertisementsFieldTypes";
 
 interface RealEstateCategoryStepProps {
@@ -15,7 +14,6 @@ const RealEstateCategoryStep: React.FC<RealEstateCategoryStepProps> = ({
     register,
     formState: { errors },
   } = useFormContext<RealEstateData>();
-  console.log("propertyType", formData.propertyType);
   return (
     <Box sx={{ mt: 2 }}>
       <TextField

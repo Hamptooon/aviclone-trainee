@@ -2,33 +2,32 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import {
-  TextField,
   Pagination,
   Box,
   Typography,
-  InputAdornment,
   Alert,
   AlertTitle,
   Button,
   CircularProgress,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import { AdvertisementList } from "../../widgets/AdvertisementList/ui/AdvertisementList";
-import {
-  advertisementApi,
-  AdvertisementFiltersType,
-} from "../../shared/api/advertisementApi";
+import { advertisementApi } from "../../shared/api/advertisementApi";
 import { useDebounce } from "../../shared/lib/hooks/useDebounce";
-import { AdvertisementFilters } from "../../features/AdvertisementFilters/ui/AdvertisementFilters";
-
+import { AdvertisementFilters } from "../../features/AdvertisementFilters/AdvertisementFilters";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../app/store/store";
+import { resetFilters } from "../../features/AdvertisementFilters/model/filterSlice";
+import { resetSearch } from "../../features/SearchAdvertisements/model/searchSlice";
+import { SearchInput } from "../../features/SearchAdvertisements/ui/SearchInput";
 export const AdvertisementPage = () => {
   const DEBOUNCE_DELAY = 100;
   const [searchParams, setSearchParams] = useSearchParams();
+  const dispatch = useDispatch();
+  const { filters } = useSelector((state: RootState) => state.filters);
+  const { searchValue } = useSelector((state: RootState) => state.search);
   const page = parseInt(searchParams.get("page") || "1");
-  const searchQuery = searchParams.get("search") || "";
-  const [isDebouncing, setIsDebouncing] = useState(false);
-  const [searchValue, setSearchValue] = useState(searchQuery);
-  const [filters, setFilters] = useState<AdvertisementFiltersType>({});
+  // const searchQuery = searchParams.get("search") || "";
+  const [isDebouncing] = useState(false);
   const debouncedSearch = useDebounce(searchValue, DEBOUNCE_DELAY);
   const debouncedFilters = useDebounce(filters, DEBOUNCE_DELAY);
 
@@ -41,16 +40,9 @@ export const AdvertisementPage = () => {
         search: debouncedSearch,
         ...debouncedFilters,
       }),
-    retry: 3, // Количество повторных попыток
-    retryDelay: 5000, // Задержка между попытками (5 сек)
+    retry: 3,
+    retryDelay: 5000,
   });
-  useEffect(() => {
-    if (searchValue !== debouncedSearch) {
-      setIsDebouncing(true);
-      const timer = setTimeout(() => setIsDebouncing(false), DEBOUNCE_DELAY);
-      return () => clearTimeout(timer);
-    }
-  }, [searchValue, debouncedSearch]);
   useEffect(() => {
     const params: Record<string, string> = { page: "1" };
     if (debouncedSearch) params.search = debouncedSearch;
@@ -61,7 +53,7 @@ export const AdvertisementPage = () => {
     });
 
     setSearchParams(params, { replace: true });
-  }, [debouncedSearch, debouncedFilters]);
+  }, [debouncedSearch, debouncedFilters, setSearchParams]);
   const showLoader = isLoading || isDebouncing;
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
@@ -72,8 +64,8 @@ export const AdvertisementPage = () => {
         page: value.toString(),
         ...(debouncedSearch && { search: debouncedSearch }),
         ...Object.entries(debouncedFilters).reduce(
-          (acc, [key, value]) => {
-            if (value) acc[key] = value.toString();
+          (acc, [key, val]) => {
+            if (val) acc[key] = val.toString();
             return acc;
           },
           {} as Record<string, string>
@@ -83,16 +75,12 @@ export const AdvertisementPage = () => {
     );
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
   const handleRetry = () => {
     refetch();
   };
   const handleResetFilters = () => {
-    setSearchValue("");
-    setFilters({});
+    dispatch(resetSearch());
+    dispatch(resetFilters());
     setSearchParams({ page: "1" }, { replace: true });
   };
   return (
@@ -139,29 +127,9 @@ export const AdvertisementPage = () => {
           Попробуйте изменить параметры поиска или фильтры
         </Alert>
       )}
+      <SearchInput />
 
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Поиск по названию"
-        value={searchValue}
-        onChange={handleSearchChange}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 3 }}
-      />
-
-      <AdvertisementFilters
-        onFilterChange={setFilters}
-        resetTrigger={
-          !debouncedSearch && Object.keys(debouncedFilters).length === 0
-        }
-      />
+      <AdvertisementFilters />
       {showLoader && (
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress sx={{ mb: 2, textAlign: "center" }} />

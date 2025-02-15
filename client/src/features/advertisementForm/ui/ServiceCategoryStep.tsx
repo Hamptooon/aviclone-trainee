@@ -2,7 +2,6 @@ import React from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
 import { ServicesData } from "../../../shared/types/types";
 import { useFormContext } from "react-hook-form";
-import { DEFAULT_VALUES } from "../config/config";
 import { SERVICE_TYPES } from "../../../shared/constants/advertisementsFieldTypes";
 interface ServiceCategoryStepProps {
   formData: Partial<ServicesData>;

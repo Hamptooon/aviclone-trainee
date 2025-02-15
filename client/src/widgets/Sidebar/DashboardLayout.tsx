@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import { useNavigation } from "./lib/useNavigation";
 import { useThemeMode } from "./lib/useThemeMode";
@@ -12,8 +12,6 @@ import {
   List,
   Typography,
   Toolbar,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import {
   Menu as MenuIcon,

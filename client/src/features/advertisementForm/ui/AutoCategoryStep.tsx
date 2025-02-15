@@ -2,7 +2,6 @@ import React from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
 import { AutoData } from "../../../shared/types/types";
 import { useFormContext } from "react-hook-form";
-import { DEFAULT_VALUES } from "../config/config";
 import { CAR_BRANDS } from "../../../shared/constants/advertisementsFieldTypes";
 interface AutoCategoryStepProps {
   formData: Partial<AutoData>;
@@ -12,7 +11,6 @@ const AutoCategoryStep: React.FC<AutoCategoryStepProps> = ({ formData }) => {
     register,
     formState: { errors },
   } = useFormContext<AutoData>();
-  console.log("brand", formData.brand);
   return (
     <Box sx={{ mt: 2 }}>
       <TextField

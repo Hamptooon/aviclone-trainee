@@ -1,4 +1,3 @@
-import React from "react";
 import { styled } from "@mui/material/styles";
 import { AppBar } from "@mui/material";
 import { MINI_DRAWER_WIDTH, DRAWER_WIDTH } from "../constants/constants";
